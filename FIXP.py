@@ -234,7 +234,7 @@ class pwout:
                     continue;
                 else:
                     for j in range(3):
-                        newfilename.write("efield_cart"+"("+str(j+1)+")="+str(changeunits[j])+"\n");
+                        newfilename.write("efield_cart"+"("+str(j+1)+")="+':12.7f'.format(changeunits[j])+"\n");
             elif lines[i].find("ATOMIC_POSITIONS (angstrom)")!=-1:
                 newfilename.write("ATOMIC_POSITIONS (angstrom)\n");
                 tick2=i;
