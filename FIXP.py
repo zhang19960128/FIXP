@@ -429,6 +429,6 @@ class pwout:
             self.writenewscfnoe(posit,'itenoe'+str(i+1));
             self.writenewscfnoedipole(posit,'itenoedipole'+str(i+1));
 startingpoint=0;
-pw=pwout("./PWOUT","ph.out"+str(startingpoint),'bto.dyn'+str(startingpoint),'ite.out'+str(startingpoint),'ite'+str(startingpoint));
+pw=pwout("./PWOUT","ph.out"+str(startingpoint),'dyn.out'+str(startingpoint),'ite.out'+str(startingpoint),'ite'+str(startingpoint));
 pw.obtain(5);
 pw.iterateintermediate(int(sys.argv[1]),startingpoint,float(sys.argv[2]));
