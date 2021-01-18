@@ -356,6 +356,12 @@ class pwout:
         self.writenewscf(efield,self.atomp,"ite1");
         self.writenewscfnoe(self.atomp,"itenoe1");
         self.writenewscfnoedipole(self.atomp,'itenoedipole'+str(1));
+        efield=np.matmul(-1*np.linalg.inv(self.edie*self.vol),deltaP*self.vol)/0.0000154961;
+        efieldzero=efield*1.0;#only count as 10% from the electrical contribution, the first step.
+        au=0.52917721067121;
+        self.writenewscf(efield,self.atomp,"ite1");
+        self.writenewscfnoe(self.atomp,"itenoe1");
+        self.writenewscfnoedipole(self.atomp,'itenoedipole'+str(1));
         accup=np.zeros([self.natoms,3])
         accue=np.zeros(3);
         accupolar=np.zeros(3);
@@ -382,6 +388,47 @@ class pwout:
             self.writenewscfnoe(posit,'itenoe'+str(i+1));
             self.writenewscfnoedipole(posit,'itenoedipole'+str(i+1));
         print('====================================================')
-pw=pwout("./PWOUT","ph.out0",'bto.dyn0','ite.out0','ite0');
+    def iterateintermediate(self,startingpoint,times,step):
+        startP=self.obtaindipolescf(self.zerofile); #units e/bohr^2;
+        endP=startP+np.array([0,0,1])*step/57.137;#units e/bohr^2;step units is C/m^2
+        deltaP=startP-endP;
+        print('the aim is: ',endP*57.137,'Please also be notifying that forces should also be zero');
+        self.obtainph(self.phfile);
+        self.obtaindyn(self.dynfile);
+        # starting the first guess: th  ink the polarization increase partly come from the electrical contribution
+        efield=np.matmul(-1*np.linalg.inv(self.edie*self.vol),deltaP*self.vol)/0.0000154961;
+        startingefield=self.obtainefield(self.path+'/'+'ite'+str(startingpoint));
+        efieldzero=efield+startingefield;#only count as 10% from the electrical contribution, the first step.
+        au=0.52917721067121;
+        self.writenewscf(efieldzero,self.atomp,"ite"+str(startingpoint+1));
+        self.writenewscfnoe(self.atomp,"itenoe"+str(startingpoint+1));
+        self.writenewscfnoedipole(self.atomp,'itenoedipole'+str(startingpoint+1));
+        accup=np.zeros([self.natoms,3])
+        accue=np.zeros(3);
+        accupolar=np.zeros(3);
+        for i in range(startingpoint+1,times,1):
+            self.obtainforce(self.path+'/'+'ite.out'+str(i));
+            scfbefore=self.path+'/'+'ite'+str(i-1);
+            scfafter=self.path+'/'+'ite'+str(i);
+            scfbeforeout=self.path+'/'+'ite.out'+str(i-1);
+            scfafterout=self.path+'/'+'ite.out'+str(i);
+            scfzerobeforeout=self.path+'/'+"itezerofield.out"+str(i-1);
+            scfzeroafterout=self.path+'/'+"itezerofield.out"+str(i);
+            diffp=self.obtaindipolediffperiodtwo(scfbefore,scfbeforeout,scfzerobeforeout,scfafter,scfafterout,scfzeroafterout);
+            self.obtainph(self.path+'/'+'ph.out'+str(i));
+            self.obtaindyn(self.path+'/'+'dyn.out'+str(i));
+#            deltaP=diffp+startP-endP;
+            accupolar=accupolar+diffp;
+            print("The polarization difference is:(C/m^2) ",accupolar*57.137)
+            deltax=self.solve(self.force,accupolar+startP-endP);
+            accup=accup+au*np.reshape(deltax[0:self.natoms*3],[self.natoms,3]);
+            accue=accue+deltax[self.natoms*3:(self.natoms+1)*3];
+            posit=accup+self.atomp;
+            efield=accue+efieldzero;
+            self.writenewscf(efield,posit,'ite'+str(i+1));
+            self.writenewscfnoe(posit,'itenoe'+str(i+1));
+            self.writenewscfnoedipole(posit,'itenoedipole'+str(i+1));
+startingpoint=0;
+pw=pwout("./PWOUT","ph.out"+str(startingpoint),'bto.dyn'+str(startingpoint),'ite.out'+str(startingpoint),'ite'+str(startingpoint));
 pw.obtain(5);
-pw.iteratetwo(int(sys.argv[1]),float(sys.argv[2]));
+pw.iterateintermediate(int(sys.argv[1]),startingpoint,float(sys.argv[2]));
