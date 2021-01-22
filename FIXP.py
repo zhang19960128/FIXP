@@ -432,4 +432,4 @@ class pwout:
 startingpoint=0;
 pw=pwout("./PWOUT","ph.out"+str(startingpoint),'dyn.out'+str(startingpoint),'ite.out'+str(startingpoint),'ite'+str(startingpoint));
 pw.obtain(5);
-pw.iterateintermediate(int(sys.argv[1]),startingpoint,float(sys.argv[2]));
+pw.iterateintermediate(startingpoint,int(sys.argv[1]),float(sys.argv[2]));
