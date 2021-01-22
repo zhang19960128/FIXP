@@ -44,6 +44,7 @@ class pwout:
                     for k in range(3):
                         for m in range(3):
                             self.atomcharge[j][k][m]=lines[i+2+4*j+k+1].split()[m+2];
+        self.edie=self.edie-np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,1.0]]);
         phout.close();
     def obtaindyn(self,file):
         dyn=open(file);
