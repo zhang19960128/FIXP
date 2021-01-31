@@ -398,7 +398,7 @@ class pwout:
         self.obtaindyn(self.dynfile);
         # starting the first guess: th  ink the polarization increase partly come from the electrical contribution
         efield=np.matmul(-1*np.linalg.inv(self.edie*self.vol),deltaP*self.vol)/0.0000154961;
-        startingefield=self.obtainefield(self.path+'/'+'ite'+str(startingpoint));
+        startingefield=self.obtainefield(self.path+'/'+'ite'+str(startingpoint))*36.3609*(10**10)*(10**-8);
         efieldzero=efield+startingefield;#only count as 10% from the electrical contribution, the first step.
         au=0.52917721067121;
         self.writenewscf(efieldzero,self.atomp,"ite"+str(startingpoint+1));
@@ -429,7 +429,7 @@ class pwout:
             self.writenewscf(efield,posit,'ite'+str(i+1));
             self.writenewscfnoe(posit,'itenoe'+str(i+1));
             self.writenewscfnoedipole(posit,'itenoedipole'+str(i+1));
-startingpoint=0;
+startingpoint=5;
 pw=pwout("./PWOUT","ph.out"+str(startingpoint),'dyn.out'+str(startingpoint),'ite.out'+str(startingpoint),'ite'+str(startingpoint));
-pw.obtain(5);
+pw.obtain(40);
 pw.iterateintermediate(startingpoint,int(sys.argv[1]),float(sys.argv[2]));
