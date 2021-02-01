@@ -407,7 +407,7 @@ class pwout:
         accup=np.zeros([self.natoms,3])
         accue=np.zeros(3);
         accupolar=np.zeros(3);
-        for i in range(startingpoint+1,times,1):
+        for i in range(startingpoint+1,startingpoint+times,1):
             self.obtainforce(self.path+'/'+'ite.out'+str(i));
             scfbefore=self.path+'/'+'ite'+str(i-1);
             scfafter=self.path+'/'+'ite'+str(i);
