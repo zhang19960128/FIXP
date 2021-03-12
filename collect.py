@@ -1,7 +1,6 @@
 import numpy as np
 import math
 import re
-from FIXP import pwout
 class Penergy:
     def __init__(self):
         pass;
@@ -122,6 +121,10 @@ class Penergy:
             result=self.scan(path+'P'+"%3.2f"%Plist[i]+'/',20);
             elist.append(result[0]*efieldunit/10**8);
         return elist;
+if __name__!='__main__':
+  exit();
+else:
+  from FIXP import pwout
 Pe=Penergy();
 Pstart=np.array([4.63807888e-05,-4.80890700e-07,3.8454e-01])
 #pscan=np.arange(-0.30+0.000000001,0.15,0.05);

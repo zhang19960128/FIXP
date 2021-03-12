@@ -429,7 +429,11 @@ class pwout:
             self.writenewscf(efield,posit,'ite'+str(i+1));
             self.writenewscfnoe(posit,'itenoe'+str(i+1));
             self.writenewscfnoedipole(posit,'itenoedipole'+str(i+1));
-startingpoint=5;
-pw=pwout("./PWOUT","ph.out"+str(startingpoint),'dyn.out'+str(startingpoint),'ite.out'+str(startingpoint),'ite'+str(startingpoint));
-pw.obtain(40);
-pw.iterateintermediate(startingpoint,int(sys.argv[1]),float(sys.argv[2]));
+if __name__=='main':
+  startingpoint=5;
+  pw=pwout("./PWOUT","ph.out"+str(startingpoint),'dyn.out'+str(startingpoint),'ite.out'+str(startingpoint),'ite'+str(startingpoint));
+  pw.obtain(40);
+  pw.iterateintermediate(startingpoint,int(sys.argv[1]),float(sys.argv[2]));
+else:
+  pass;
+
