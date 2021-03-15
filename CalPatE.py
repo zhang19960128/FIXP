@@ -14,7 +14,7 @@ class scanE(pwout):
       self.obtain(natoms);
       dpdiff=[];
       for i in range(length):
-        dp=obtaindipolediffperiodtwo(self.scfin,self.zerofile,self.zerofile,scfinlist[i],scfoutlist[i],scfzerooutlist[i]);
+        dp=self.obtaindipolediffperiodtwo(self.scfin,self.zerofile,self.zerofile,scfinlist[i],scfoutlist[i],scfzerooutlist[i]);
         dpdiff.append(dp);
       return dpdiff;
   def absolutep(self,highsymmscfin,highsymmscfout):
@@ -37,6 +37,7 @@ class scanE(pwout):
 pwEscf=scanE('./PWOUT','ph.out0','dyn.out0','ite.out0','ite0')
 path="/workspace/jiahaoz/BiFeO3/EfieldEnergy/05_phase/";
 scfoutlist=[];
+scfzerolist=[];
 scfinlist=[];
 pathlist=[];
 for i in range(-7,8,1):
@@ -46,6 +47,8 @@ for i in range(-7,8,1):
   scfinlist.append(ptemp);
   ptemp=path+"E{0:02d}".format(i)+'/';
   pathlist.append(ptemp);
+  ptemp=path+"ZEROSCF/"+"ZERO"+"{0:02d}".format(i)+"/bto.out"
+  scfzerolist.append(ptemp)
 elist=pwEscf.obtainenergy(scfoutlist)
 pwEscf.updatescflist(pathlist,scfinlist,scfoutlist)
-#pwEscf.scanP(scfinlist,scfoutlist,)
+pwEscf.scanP(scfinlist,scfoutlist,scfzerolist)

@@ -25,7 +25,7 @@ class pwout:
         self.obtainph(self.phfile);
         self.obtaindyn(self.dynfile);
         self.obtainforce(self.zerofile);
-        self.vol=np.linalg.det(pw.axis)/au/au/au;
+        self.vol=np.linalg.det(self.axis)/au/au/au;
     def obtainph(self,file):
         phout=open(file,'r');
         #post-processing ph.out
