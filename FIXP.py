@@ -9,6 +9,18 @@ class pwout:
         self.dynfile=self.path+'/'+dynout;
         self.zerofile=self.path+'/'+zero;
         self.scfin=self.path+'/'+scfin;
+        natoms=self.obtainnatoms(self.scfin);
+        self.obtain(natoms);
+    def obtainnatoms(self,filedftinput):
+        f=open(filedftinput,'r');
+        lines=f.readlines();
+        for i in lines:
+          if i.find("nat")!=-1:
+            arra=i.split('=');
+            arra=arra[1].split(',');
+            natom=int(arra[0]);
+        f.close();
+        return natom;
     def obtain(self,natom):
         au=0.52917721067121;
         self.natoms=natom;
@@ -93,8 +105,8 @@ class pwout:
         # now the units of dipole is e * bohr   
         print('the polarization now is: ',total/np.linalg.det(self.axis/Atoau)*57.137)
         return total/np.linalg.det(self.axis/Atoau);
-    def obtaindipolescftotal(self,file):
-        berryout=open(file,'r');
+    def obtaindipolescftotal(self,f):
+        berryout=open(f,'r');
         lines=berryout.readlines();
         epolar=np.zeros(3);
         apolar=np.zeros(3);
@@ -136,27 +148,19 @@ class pwout:
         de=d2[0]-d1[0];
         di=d2[1]-d1[1];
         return [de,di];
-    def obtaindipolediffperiodtwo(self,bscfin,bscfout,bscfzeroout,ascfin,ascfout,ascfzeroout):
-#       print(bscfzeroout,'-----Obtain zero file Dipole change:');
-        dp=self.obtaindiff(ascfzeroout,bscfzeroout);
-#       print(dp);
-#       print(ascfzeroout,'---------------------------------------------------------------');
-        epsilzero=8.8541878*10**-12;
-        angstrom=10**-10;
-        efieldqe=36.3609*10**10;
-        echarge=1.60217662*10**-19;
-        au=0.529*10**-10;
-        Atoau=0.529;
-        dipoleqe=epsilzero*angstrom**3*efieldqe/echarge/au;
+    def obtaindiffp_at_zeroE(self,bscfin,bscfzeroout,ascfin,ascfzeroout):
+        print('---------------------------------------------------------------------------');
         atombefore=self.readposition(bscfin,self.natoms);
         atomafter=self.readposition(ascfin,self.natoms);
         period=np.zeros(3);
+        Atoau=0.529;
         for i in range(3):
-            period[i]=self.axis[i][i]/0.529;
+          period[i]=self.axis[i][i]/0.529;
         diffp=atomafter-atombefore;
         dipoleion=np.zeros(3);
         for i in range(self.natoms):
-            dipoleion=dipoleion+np.matmul(self.atomcharge[i,0:3,0:3],diffp[i,0:3])/Atoau;
+          dipoleion=dipoleion+np.matmul(self.atomcharge[i,0:3,0:3],diffp[i,0:3])/Atoau;
+        dp=self.obtaindiff(ascfzeroout,bscfzeroout);
         total=dp[0]+dp[1];
         print('-Correct Finite position difference change of Polariztion,Delta(#2,#1)---')
         print("Before Correction: ",total,'File:',ascfzeroout,bscfzeroout);
@@ -167,11 +171,24 @@ class pwout:
             total[i]=total[i]-dipoleion[i]-round((total[i]-dipoleion[i])/period[i])*period[i]+dipoleion[i]
         print("After Correction: ",total,'Reference: ',dipoleion);
         print('---------------------------------------------------------------------------');
-        print('-Correct Finite EField Dipole change by Polarization Quanta, Delta(#2+E,#2+0)-',ascfout,ascfzeroout);     
-        dpE2=self.obtaindiff(ascfout,ascfzeroout);
-        efield=self.obtainefield(ascfin);
+        return total;
+    def obtaindiffp_at_zeroP(self,scfin,scfout,scfzeroout):
+        print('---------------------------------------------------------------------------');
+        print('-Correct Finite EField Dipole change by Polarization Quanta, Delta(#2+E,#2+0)-',scfout,scfzeroout);     
+        dpE2=self.obtaindiff(scfout,scfzeroout);
+        efield=self.obtainefield(scfin);
+        epsilzero=8.8541878*10**-12;
+        angstrom=10**-10;
+        efieldqe=36.3609*10**10;
+        echarge=1.60217662*10**-19;
+        au=0.529*10**-10;
+        Atoau=0.529;
+        dipoleqe=epsilzero*angstrom**3*efieldqe/echarge/au;
         polarestE2=np.matmul(self.edie,efield)*np.linalg.det(self.axis)*dipoleqe;# units e*au;
         totalE2=dpE2[0]+dpE2[1];
+        period=np.zeros(3);
+        for i in range(3):
+          period[i]=self.axis[i][i]/0.529;
         print('Before Correction: ',totalE2);
         for i in range(3):
             totalE2[i]=totalE2[i]-round(totalE2[i]/period[i])*period[i];
@@ -180,20 +197,11 @@ class pwout:
             totalE2[i]=totalE2[i]-polarestE2[i]-round((totalE2[i]-polarestE2[i])/period[i])*period[i]+polarestE2[i];
         print('After Correction: ',totalE2,"Reference:",polarestE2,'Efield',efield);
         print('---------------------------------------------------------------------------');
-        print('-Correct Finite EField Dipole change by Polarization Quanta,Delta(#1+E,#1+0)-',bscfout,bscfzeroout);
-        dpE1=self.obtaindiff(bscfout,bscfzeroout);
-        efield=self.obtainefield(bscfin);
-        # estimate the electrical polarization change;
-        polarestE1=np.matmul(self.edie,efield)*np.linalg.det(self.axis)*dipoleqe;# units e*au;
-        totalE1=dpE1[0]+dpE1[1];
-        print('Before Correction: ',totalE1);
-        for i in range(3):
-            totalE1[i]=totalE1[i]-round(totalE1[i]/period[i])*period[i];
-            temp=period[i]*round(polarestE1[i]/period[i]);
-            totalE1[i]=totalE1[i]+temp;
-            totalE1[i]=totalE1[i]-polarestE1[i]-round((totalE1[i]-polarestE1[i])/period[i])*period[i]+polarestE1[i];
-        print('After Correction: ',totalE1,"Reference",polarestE1,'Efield',efield);
-        print('----------------------------------------------------------------------------');
+        return totalE2;
+    def obtaindipolediffperiodtwo(self,bscfin,bscfout,bscfzeroout,ascfin,ascfout,ascfzeroout):
+        total=self.obtaindiffp_at_zeroE(bscfin,bscfzeroout,ascfin,ascfzeroout);
+        totalE2=self.obtaindiffp_at_zeroP(ascfin,ascfout,ascfzeroout);
+        totalE1=self.obtaindiffp_at_zeroP(bscfin,bscfout,bscfzeroout);
         return (totalE2+total-totalE1)/np.linalg.det(self.axis/Atoau);
     def readscf(self):
         scfinput=open(self.scfin,'r');

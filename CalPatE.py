@@ -1,5 +1,5 @@
 from FIXP import pwout
-import os
+import sys
 from update import updatedft
 from update import obtainnatoms
 class scanE(pwout):
@@ -10,7 +10,6 @@ class scanE(pwout):
   def scanP(self,scfinlist,scfoutlist,scfzerooutlist):
       length=len(scfinlist);
       natoms=obtainnatoms(scfinlist[0]);
-      print(natoms)
       self.obtain(natoms);
       dpdiff=[];
       for i in range(length):
@@ -34,21 +33,24 @@ class scanE(pwout):
           print(i,'CANNOT FIND CONVERGED RESULT');
           sys.exit();
       return energylist;
-pwEscf=scanE('./PWOUT','ph.out0','dyn.out0','ite.out0','ite0')
-path="/workspace/jiahaoz/BiFeO3/EfieldEnergy/05_phase/";
-scfoutlist=[];
-scfzerolist=[];
-scfinlist=[];
-pathlist=[];
-for i in range(-7,8,1):
-  ptemp=path+"E{0:02d}".format(i)+'/bto.out';
-  scfoutlist.append(ptemp);
-  ptemp=path+"E{0:02d}".format(i)+'/bto.in';
-  scfinlist.append(ptemp);
-  ptemp=path+"E{0:02d}".format(i)+'/';
-  pathlist.append(ptemp);
-  ptemp=path+"ZEROSCF/"+"ZERO"+"{0:02d}".format(i)+"/bto.out"
-  scfzerolist.append(ptemp)
-elist=pwEscf.obtainenergy(scfoutlist)
-pwEscf.updatescflist(pathlist,scfinlist,scfoutlist)
-pwEscf.scanP(scfinlist,scfoutlist,scfzerolist)
+if __name__=='name':
+  pwEscf=scanE('./PWOUT','ph.out0','dyn.out0','ite.out0','ite0')
+  path="/workspace/jiahaoz/BiFeO3/EfieldEnergy/05_phase/";
+  scfoutlist=[];
+  scfzerolist=[];
+  scfinlist=[];
+  pathlist=[];
+  for i in range(-7,8,1):
+    ptemp=path+"E{0:02d}".format(i)+'/bto.out';
+    scfoutlist.append(ptemp);
+    ptemp=path+"E{0:02d}".format(i)+'/bto.in';
+    scfinlist.append(ptemp);
+    ptemp=path+"E{0:02d}".format(i)+'/';
+    pathlist.append(ptemp);
+    ptemp=path+"ZEROSCF/"+"ZERO"+"{0:02d}".format(i)+"/bto.out"
+    scfzerolist.append(ptemp)
+  elist=pwEscf.obtainenergy(scfoutlist)
+  pwEscf.updatescflist(pathlist,scfinlist,scfoutlist)
+  pwEscf.scanP(scfinlist,scfoutlist,scfzerolist)
+else:
+  pass;
