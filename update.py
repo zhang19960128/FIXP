@@ -10,10 +10,24 @@ def obtainnatoms(filedftinput):
       natom=int(arra[0]);
   f.close();
   return natom;
+def readposition(scfin,natoms):
+  scfinput=open(scfin,'r');
+  lines=scfinput.readlines();
+  length=len(lines);
+  atomp=np.zeros([natoms,3]);
+  for i in range(length):
+    if lines[i].find("ATOMIC_POSITIONS")!=-1 and lines[i].find("(angstrom)")!=-1:
+      for j in range(natoms):
+        for k in range(3):
+          atomp[j,k]=float(lines[i+j+1].split()[k+1]);
+    if lines[i].find("ATOMIC_POSITIONS")!=-1 and lines[i].find("crystal")!=-1:
+      for j in range(natoms):
+        for k in range(3):
+          atom[j,k]=float(lines[i+j+1].split()[k+1]);
+  return atomp;
 def writenewscf(natoms,scfin,atomposition,filename,unit):
     scffiles=open(scfin,'r');
     newfilename=open(filename,'w');
-    print(filename)
     lines=scffiles.readlines();
     tick1=0;
     tick2=0;
