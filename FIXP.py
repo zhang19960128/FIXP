@@ -199,6 +199,7 @@ class pwout:
         print('---------------------------------------------------------------------------');
         return totalE2;
     def obtaindipolediffperiodtwo(self,bscfin,bscfout,bscfzeroout,ascfin,ascfout,ascfzeroout):
+        Atoau=0.529;
         total=self.obtaindiffp_at_zeroE(bscfin,bscfzeroout,ascfin,ascfzeroout);
         totalE2=self.obtaindiffp_at_zeroP(ascfin,ascfout,ascfzeroout);
         totalE1=self.obtaindiffp_at_zeroP(bscfin,bscfout,bscfzeroout);
