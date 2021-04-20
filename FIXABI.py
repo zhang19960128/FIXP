@@ -2,6 +2,7 @@ import numpy as np
 import re
 import math
 import sys
+import os
 class abiout:
   def __init__(self,scfin,zeroout,phin,phout):
     self.phfile=phout;
@@ -482,6 +483,7 @@ class abiout:
         self.writenewscf(efield,posit,'ite'+str(i+1));
         self.writenewscfnoedipole(posit,'itenoe'+str(i+1));
         self.writenewdfpt(posit,'dfpt'+str(i+1));
-startingpoint=0;
 abi=abiout("./scf0","./scf0.abo","./dfpt0","./dfpt0.abo");
-abi.iterateintermediate(startingpoint,int(sys.argv[1]),float(sys.argv[2]));
+startingpoint=0;
+endpoint=int(sys.argv[1]);
+abi.iterateintermediate(startingpoint,endpoint,float(sys.argv[2]));
