@@ -445,7 +445,7 @@ class abiout:
     return np.matmul(np.linalg.inv(self.A),self.y);
   def iterateintermediate(self,startingpoint,times,step):
     startP=self.obtainpolarization(self.zerofile); #units e/bohr^2;
-    endP=startP+np.array([0,0,1])*step/57.137;#units e/bohr^2;step units is C/m^2
+    endP=startP+np.array([0,1,0])*step/57.137;#units e/bohr^2;step units is C/m^2
     deltaP=startP-endP;
     print('the aim is: ',endP*57.137,'Please also be notifying that forces should also be zero');
     self.obtainedie(self.phfile);
@@ -480,7 +480,7 @@ class abiout:
         accue=accue+deltax[self.natoms*3:(self.natoms+1)*3];
         posit=accup+self.atomp;
         efield=accue+efieldzero;
-        self.writenewscf(efield,posit,'ite'+str(i+1));
+        self.writenewscf(efield,posit,'scf'+str(i+1));
         self.writenewscfnoedipole(posit,'itenoe'+str(i+1));
         self.writenewdfpt(posit,'dfpt'+str(i+1));
 abi=abiout("./scf0","./scf0.abo","./dfpt0","./dfpt0.abo");
