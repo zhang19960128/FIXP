@@ -115,6 +115,8 @@ class abiout:
               line[s]=int(line[s]);
             line[4]=float(line[4]);
             self.edie[line[0]-1][line[2]-1]=line[4];
+    for i in range(3):
+      self.edie[i][i]=self.edie[i][i]-1.0;
     dyn.close();
   def obtainforce(self,scfoutfile):
     scfout=open(scfoutfile,'r');
@@ -192,12 +194,14 @@ class abiout:
   def obtaindiffp_at_zeroE(self,bscfin,bscfzeroout,ascfin,ascfzeroout):
     print('-----------------------------------------');
     print('-- Polarization Difference by Position --')
+    print('--file comparasion--',bscfzeroout,ascfzeroout,'--')
     atombefore=self.readposition(bscfin,self.natoms);
     atomafter=self.readposition(ascfin,self.natoms);
     period=np.zeros(3);
     autoA=0.52917721067121;
     for i in range(3):
       period[i]=self.axis[i][i]/autoA;
+    print("period= ",period)
     diffp=atomafter-atombefore;
     for i in range(self.natoms):
       for j in range(3):
@@ -219,6 +223,7 @@ class abiout:
   def obtaindiffp_at_zeroP(self,scfin,scfout,scfzeroout):
     print('-----------------------------------------');
     print('-- Polarization Difference by Efield ----');
+    print('--file comparasion--',scfout,scfzeroout,'--')
     dpe=self.obtaindiff(scfzeroout,scfout);
     autoA=0.529;
     dpe=dpe*np.linalg.det(self.axis/autoA);
@@ -445,7 +450,7 @@ class abiout:
     return np.matmul(np.linalg.inv(self.A),self.y);
   def iterateintermediate(self,startingpoint,times,step):
     startP=self.obtainpolarization(self.zerofile); #units e/bohr^2;
-    endP=startP+np.array([0,1,0])*step/57.137;#units e/bohr^2;step units is C/m^2
+    endP=startP+np.array([0,0,1])*step/57.137;#units e/bohr^2;step units is C/m^2
     deltaP=startP-endP;
     print('the aim is: ',endP*57.137,'Please also be notifying that forces should also be zero');
     self.obtainedie(self.phfile);
