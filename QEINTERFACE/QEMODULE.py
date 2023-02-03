@@ -1,6 +1,6 @@
 import numpy as np
 import sys
-class QEIO:
+class ABIIO:
     def __init__(self, natom, scfEtemplate, scfnoEtemplate):
         self.scfEtemplate = scfEtemplate;
         self.scfnoEtemplate = scfnoEtemplate;
