@@ -10,7 +10,7 @@ class ABIIO:
         self.force = np.zeros((natom, 3, 3));
 
     def readscf(self):
-        scfinput = open(self.scfin,'r');
+        scfinput = open(self.scfnoEtemplate,'r');
         lines = scfinput.readlines();
         length = len(lines);
         for i in range(length):
@@ -28,6 +28,7 @@ class ABIIO:
                             self.atomp[j,k] = float(lines[i + j + 1].split()[k + 1]);
                 else:
                     sys.exit('!!ERROR!! I ONLY SUPPORT ANGSTROM')
+        scfinput.close();
 
     def obtainforce(self, filename): 
         scfout = open(filename, 'r'); # post-processing the scf.out
