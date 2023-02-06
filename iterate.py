@@ -30,11 +30,13 @@ class iteration:
             Amatrix[(3 * i) : (3 * i + 3), (3 * self.natom) : (3 * self.natom + 3)] = np.copy( -1 * atomcharge[i] * 0.01); # Together makes the unit to eV / A when times the E field with Mv/cm.
         for i in range(self.natom):
             Amatrix[(3 * self.natom) : (3 *self.natom + 3), (3 * i) : (3 * i + 3)] = np.copy( -1 * atomcharge[i]);
-        Amatrix[(3 * self.natom) : (3 * self.natom + 3), (3 * self.natom) : (3 * self.natom + 3)] = np.copy(-1 * edie * 0.0000154961 * np.linalg.det(self.axis));
+        columbtoelectron = 1 / (1.60217663 * (10**-19));
+        unitconversion = 10**6 / (10**-2) * (8.85418 * 10**-12) * columbtoelectron / ( 10**10 )**2;
+        Amatrix[(3 * self.natom) : (3 * self.natom + 3), (3 * self.natom) : (3 * self.natom + 3)] = np.copy(-1 * edie * unitconversion * np.linalg.det(self.axis));
         for i in range(self.natom):
             for j in range(3):
                 y[i * 3 + j] = force[i][j];
-        y[(3 * self.natom) : (3 * self.natom + 3)] = np.linalg.det(self.axis) * DP;
+        y[(3 * self.natom) : (3 * self.natom + 3)] = np.linalg.det(self.axis) * DP * columbtoelectron / ( 10**10 )**2;
         x = np.matmul(np.linalg.inv(Amatrix), y);
         dPosition = x[0 : (3 * self.natom)];
         dEfield = x[(3 * self.natom) : (3 * self.natom + 3)];

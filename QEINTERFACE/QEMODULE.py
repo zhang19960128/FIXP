@@ -40,6 +40,9 @@ class ABIIO:
                     self.force[j][1] = float(lines[i + j + 2].split()[7]);
                     self.force[j][2] = float(lines[i + j + 2].split()[8]);
         scfout.close();
+        Ry = 13.605;
+        au = 0.5291;
+        self.force = self.force * Ry / au;
 
     def obtaindipolescf(self, filename):
         berryout = open(filename, 'r');
@@ -57,12 +60,15 @@ class ABIIO:
                     apolar[j] = float(lines[i + 1 + j].split()[1]) / np.sqrt(2);
         for i in range(3):
             total[i] = epolar[i] + apolar[i];
-        # now the units of dipole is e * bohr   
-        print('the polarization now is: ',total/np.linalg.det(self.axis/Atoau)*57.137)
-        return total/np.linalg.det(self.axis/Atoau);
+        # now the units of dipole is e * bohr
+        echarge = 1.60217663 * 10**(-19);
+        bohrR = 5.291772 * 10**(-11);
+        polarization = total / np.linalg.det(self.axis/Atoau) * echarge * bohrR / (bohrR)**3;
+        print('the polarization now is: ', polarization)
+        return polarization;
 
     def writescfE(self, Efield, atomposition, outputfilename):
-        changeunits = Efield*10**6/10**(-2)/(36.3509*10**10); # the Efield units now is MV/cm the atomposition units is the angstrom;
+        changeunits = Efield * 10**6 / 10**(-2) / (36.3509*10**10); # the Efield units now is MV/cm the atomposition units is the angstrom;
         scffiles = open(self.scfEtemplate, 'r');
         newfilename = open(outputfilename, 'w');
         lines = scffiles.readlines();
@@ -168,10 +174,22 @@ class PHIO:
                             self.dynmatrix[j][k][0][m] = float(lines[i + 4 + 4 * (j * self.natom + k) + 1].split()[m * 2]);
                             self.dynmatrix[j][k][1][m] = float(lines[i + 4 + 4 * (j * self.natom + k) + 2].split()[m * 2]);
                             self.dynmatrix[j][k][2][m] = float(lines[i + 4 + 4 * (j * self.natom + k) + 3].split()[m * 2]);
+        dyn.close(); # the raw output is not mass weighted the following lines will help determining the mass-weighted dynamical matrix and help.
+        Ry = 13.605;
+        au = 0.5291;
+        self.dynmatrix = self.dynmatrix * Ry / au / au; # Ry = 13.605, au = 0.5291
+        self.dynmatrix_massweighted = np.copy(self.dynmatrix);
         for i in range(self.natom):
             for j in range(self.natom):
-                self.dynmatrix[i][j] = self.dynmatrix[i][j]; #be careful about w and f, those are circle frequence and normal frequency.
-        dyn.close();
+                self.dynmatrix_massweighted[i][j] = self.dynmatrix[i][j] / np.sqrt(self.atommass[i] * self.atommass[j]);
+        self.dynmatrix1D = np.zeros((3 * self.natom, 3 * self.natom));
+        self.dynmatrix_massweighted1D = np.zeros((3 * self.natom, 3 * self.natom));
+        for i in range(self.natom):
+            for j in range(self.natom):
+                for m in range(3):
+                    for n in range(3):
+                        self.dynmatrix1D[3 * i + m][3 * j + n] = self.dynmatrix[i][j][m][n];#be careful about w and f, those are circle frequence and normal frequency. (http://ilan.schnell-web.net/physics/rydberg.pdf) Units of mass weighted Dynmatrix should be  Ry/au/au.
+                        self.dynmatrix_massweighted1D[3 * i + m, 3 * j + n] = self.dynmatrix_massweighted[i][j][m][n]; # units are Ry / au / au / proton mass
 
     def obtainborn(self, filename):
         f = open(filename, 'r');
@@ -186,3 +204,4 @@ class PHIO:
                                 self.atomcharge[j][k - 1][n] = lin[2 + n];
                         else:
                             continue;
+        f.close();
