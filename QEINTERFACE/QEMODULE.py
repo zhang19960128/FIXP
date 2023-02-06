@@ -6,8 +6,8 @@ class ABIIO:
         self.scfnoEtemplate = scfnoEtemplate;
         self.natom = natom;
         self.axis = np.zeros((3, 3));
-        self.atomp = np.zeros((natom, 3, 3));
-        self.force = np.zeros((natom, 3, 3));
+        self.atomp = np.zeros((natom, 3));
+        self.force = np.zeros((natom, 3));
 
     def readscf(self):
         scfinput = open(self.scfnoEtemplate,'r');
@@ -23,9 +23,9 @@ class ABIIO:
                     sys.exit("!!ERROR!! I ONLY SUPPORT ANGSTROM");
             if lines[i].find("ATOMIC_POSITIONS") != -1:
                 if lines[i].find("(angstrom)") != -1:
-                    for j in range(self.natoms):
+                    for j in range( self.natom ):
                         for k in range(3):
-                            self.atomp[j,k] = float(lines[i + j + 1].split()[k + 1]);
+                            self.atomp[j, k] = float(lines[i + j + 1].split()[k + 1]);
                 else:
                     sys.exit('!!ERROR!! I ONLY SUPPORT ANGSTROM')
         scfinput.close();
@@ -51,10 +51,10 @@ class ABIIO:
         for i in range(len(lines)):
             if(lines[i].find("Electronic Dipole on Cartesian axes") != -1):
                 for j in range(3):
-                    epolar[j] = float(lines[i + 1 + j].split()[1]) / math.sqrt(2);
+                    epolar[j] = float(lines[i + 1 + j].split()[1]) / np.sqrt(2);
             elif(lines[i].find("Ionic Dipole on Cartesian axes") != -1):
                 for j in range(3):
-                    apolar[j] = float(lines[i + 1 + j].split()[1]) / math.sqrt(2);
+                    apolar[j] = float(lines[i + 1 + j].split()[1]) / np.sqrt(2);
         for i in range(3):
             total[i] = epolar[i] + apolar[i];
         # now the units of dipole is e * bohr   
@@ -134,25 +134,27 @@ class PHIO:
         self.natom = natom;
         self.edie = np.zeros((3, 3));
         self.atomcharge = np.zeros((natom, 3, 3));
+        self.atommass = np.zeros(natom);
+        self.dynmatrix = np.zeros((natom, natom, 3, 3), dtype = float);
 
     def obtainph(self, filename):
         phout = open(filename, 'r');
         lines = phout.readlines();
         for i in range(len(lines)):
             if lines[i].find("site n.  atom      mass           positions (alat units)") != -1:
-                for j in range(self.natoms):
+                for j in range(self.natom):
                     for k in range(3):
                         self.atommass[j] = float(lines[i+j+1].split()[2]);
             if lines[i].find("Dielectric constant in cartesian axis") != -1:
                 for j in range(3):
                     for k in range(3):
                         self.edie[j][k] = float(lines[i + j + 2].split()[k + 1]);
-            if lines[i].find("Effective charges (d P / du) in cartesian axis") != -1:
-                for j in range(self.natoms):
+            if lines[i].find("Effective charges (d Force / dE) in cartesian axis with asr applied:") != -1:
+                for j in range(self.natom):
                     for k in range(3):
                         for m in range(3):
-                            self.atomcharge[j][k][m] = lines[i + 2 + 4 * j + k + 1].split()[m + 2];
-        self.edie = self.edie-np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,1.0]]);
+                            self.atomcharge[j][k][m] = lines[i + 2 + 4 * j + k].split()[m + 2];
+        self.edie = self.edie-np.array([[1.0, 0.0, 0.0],[0.0, 1.0, 0.0],[0.0, 0.0, 1.0]]);
         phout.close();
 
     def obtaindyn(self, filename):
@@ -160,13 +162,27 @@ class PHIO:
         lines = dyn.readlines();
         for i in range(len(lines)):
             if lines[i].find("Dynamical  Matrix in cartesian axes") != -1:
-                for j in range(self.natoms):
-                    for k in range(self.natoms):
+                for j in range(self.natom):
+                    for k in range(self.natom):
                         for m in range(3):
-                            self.dynmatrix[j][k][0][m] = float(lines[i + 4 + 4 * (j * self.natoms + k) + 1].split()[m * 2]);
-                            self.dynmatrix[j][k][1][m] = float(lines[i + 4 + 4 * (j * self.natoms + k) + 2].split()[m * 2]);                    
-                            self.dynmatrix[j][k][2][m] = float(lines[i + 4 + 4 * (j * self.natoms + k) + 3].split()[m * 2]);
-        for i in range(self.natoms):
-            for j in range(self.natoms):
+                            self.dynmatrix[j][k][0][m] = float(lines[i + 4 + 4 * (j * self.natom + k) + 1].split()[m * 2]);
+                            self.dynmatrix[j][k][1][m] = float(lines[i + 4 + 4 * (j * self.natom + k) + 2].split()[m * 2]);
+                            self.dynmatrix[j][k][2][m] = float(lines[i + 4 + 4 * (j * self.natom + k) + 3].split()[m * 2]);
+        for i in range(self.natom):
+            for j in range(self.natom):
                 self.dynmatrix[i][j] = self.dynmatrix[i][j]; #be careful about w and f, those are circle frequence and normal frequency.
         dyn.close();
+
+    def obtainborn(self, filename):
+        f = open(filename, 'r');
+        line = f.readlines();
+        for i in range(len(line)):
+            if lines[i].find("Effective charges (d Force / dE) in cartesian axis with asr applied") != -1:
+                for j in range(self.natom):
+                    for k in range(4):
+                        if k != 0:
+                            lin = line[i + 4 * j + k + 1].split();
+                            for n in range(3):
+                                self.atomcharge[j][k - 1][n] = lin[2 + n];
+                        else:
+                            continue;
