@@ -31,8 +31,8 @@ if __name__=='__main__':
         os.system("{0:s} < {2:s}ph.in > {2:s}PHOUT{1:d}".format(phcommand, i, workingfolder));
         os.system("cp {0:s}{2:s} {0:s}DYNOUT{1:d}".format(workingfolder, i, dynmatfilename));
         nextconfig = ABIIO(natom, "{0:s}ITER{1:d}".format(workingfolder, i), "{0:s}ITERNOE{1:d}".format(workingfolder, i));
-        nextconfig.obtaindipolescf("{0:s}ITER{1:d}.out".format(workingfolder, i));
-        nextconfig.obtainforce("{0:s}ITER{1:d}.out".format(workingfolder, i));
+        nextconfig.obtaindipolescf("{0:s}ITER.out{1:d}".format(workingfolder, i));
+        nextconfig.obtainforce("{0:s}ITER.out{1:d}".format(workingfolder, i));
         nextconfig.obtainefield("{0:s}ITER{1:d}".format(workingfolder, i));
         nextPH = PHIO(natom);
         nextPH.obtainph("{0:s}PHOUT{1:d}".format(workingfolder, i));
