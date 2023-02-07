@@ -5,8 +5,8 @@ class iteration:
         self.Pth = Pth; # Polarization difference should be converged;
         self.Fth = Fth; # force should be equilibriumed after iteration;
         self.natom = natom;
-        self.Efieldchain = []; # E field has the unit Mv/cm.
-        self.Positchain = []; # Position has the unit angstrom.
+        self.Echain = []; # E field has the unit Mv/cm.
+        self.Pchain = []; # Position has the unit angstrom.
         self.Polarization = []; # Polarization has the unit C/m^2;
 
     def loading(self, Efield, Position, axis, Polar):
@@ -16,9 +16,10 @@ class iteration:
         self.axis = axis; # Axis for volume has the units Angstrom.
 
     def nextsolution(self, force, dynmatrix, atomcharge, edie, Polarnow):
-        self.Polarizaion.append(Polarnow);
+        self.Polarization.append(Polarnow);
         DP = Polarnow - self.goal;
-        period = self.axis *( 10**(-10) )* 1.60217663 * ( 10**(-19) ) / ( 10**(-30) ) # Units C / m^2.
+        period = self.axis / np.linalg.det(self.axis) * ( 10**(-10) ) * 1.60217663 * ( 10**(-19) ) / ( 10**(-30) ) # Units C / m^2.
+        period = np.array([period[0][0], period[1][1], period[2][2]]);
         DP = DP - np.round(DP / period) * period;
         Amatrix = np.zeros((3 * self.natom + 3, 3 * self.natom + 3), dtype = float);
         x = np.zeros(3 * self.natom + 3);
@@ -40,5 +41,5 @@ class iteration:
         x = np.matmul(np.linalg.inv(Amatrix), y);
         dPosition = x[0 : (3 * self.natom)];
         dEfield = x[(3 * self.natom) : (3 * self.natom + 3)];
-        self.Echain.append(self.Echain + dEfield);
-        self.Pchain.append(self.Pchain + dPosition);
+        self.Echain.append(self.Echain[-1] + dEfield);
+        self.Pchain.append(self.Pchain[-1] + dPosition.reshape((self.natom,3)));
