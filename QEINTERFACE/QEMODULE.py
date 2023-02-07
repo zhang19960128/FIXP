@@ -8,6 +8,9 @@ class ABIIO:
         self.axis = np.zeros((3, 3));
         self.atomp = np.zeros((natom, 3));
         self.force = np.zeros((natom, 3));
+        self.efield = np.zeros(3);
+        self.polarization = np.zeros(3);
+        self.readscf();
 
     def readscf(self):
         scfinput = open(self.scfnoEtemplate,'r');
@@ -44,6 +47,18 @@ class ABIIO:
         au = 0.5291;
         self.force = self.force * Ry / au;
 
+    def obtainefield(self, filename):
+        f = open(filename, 'r');
+        lines = f.readlines();
+        f.close();
+        ebefore = np.zeros(3);
+        for i in range(len(lines)):
+            for j in range(3):
+                if lines[i].find("efield_cart(" + str(j + 1) + ")") != -1:
+                    ebefore[j] = float(lines[i].split("=")[-1]);
+        f.close();
+        self.efield = ebefore;
+
     def obtaindipolescf(self, filename):
         berryout = open(filename, 'r');
         lines = berryout.readlines();
@@ -64,8 +79,7 @@ class ABIIO:
         echarge = 1.60217663 * 10**(-19);
         bohrR = 5.291772 * 10**(-11);
         polarization = total / np.linalg.det(self.axis/Atoau) * echarge * bohrR / (bohrR)**3;
-        print('the polarization now is: ', polarization)
-        return polarization;
+        self.polarization = polarization;
 
     def writescfE(self, Efield, atomposition, outputfilename):
         changeunits = Efield * 10**6 / 10**(-2) / (36.3509*10**10); # the Efield units now is MV/cm the atomposition units is the angstrom;

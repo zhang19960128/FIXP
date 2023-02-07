@@ -1,7 +1,7 @@
 import numpy as np
 class iteration:
     def __init__(self, natom, goal, Pth, Fth):
-        self.goal = goal; # goal of difference polarization,
+        self.goal = goal; # goal of total polarization,
         self.Pth = Pth; # Polarization difference should be converged;
         self.Fth = Fth; # force should be equilibriumed after iteration;
         self.natom = natom;
