@@ -55,7 +55,7 @@ class ABIIO:
         for i in range(len(lines)):
             for j in range(3):
                 if lines[i].find("efield_cart(" + str(j + 1) + ")") != -1:
-                    ebefore[j] = float(lines[i].split("=")[-1]);
+                    ebefore[j] = float(lines[i].replace(',','').split("=")[-1]);
         f.close();
         self.efield = ebefore;
 
@@ -99,12 +99,12 @@ class ABIIO:
             elif lines[i].find("ATOMIC_POSITIONS (angstrom)") != -1:
                 newfilename.write("ATOMIC_POSITIONS (angstrom)\n");
                 tick2 = i;
-                for j in range(self.natoms):
+                for j in range(self.natom):
                     temp = "";
                     for t in range(3):
                         temp = temp+" " + '{:12.8f}'.format(atomposition[j, t]);
                     newfilename.write(lines[j+i+1].split()[0]+" "+temp+"\n");
-            elif tick2+self.natoms >= i and tick2 >1:
+            elif tick2+self.natom >= i and tick2 >1:
                 continue;
             elif lines[i].find("verbosity") != -1:
                 continue;
@@ -133,7 +133,7 @@ class ABIIO:
             elif lines[i].find("ATOMIC_POSITIONS (angstrom)") != -1:
                 newfilename.write("ATOMIC_POSITIONS (angstrom)\n");
                 tick2 = i;
-                for j in range(self.natoms):
+                for j in range(self.natom):
                     temp = "";
                     for t in range(3):
                         temp = temp+'{:12.8f}'.format(atomposition[j,t]);
@@ -142,7 +142,7 @@ class ABIIO:
                 newfilename.write("K_POINTS automatic\n");
                 newfilename.write("4 4 4 1 1 1\n")
                 skiplines = 1;
-            elif tick2+self.natoms >= i and tick2 >1:
+            elif tick2+self.natom >= i and tick2 >1:
                 continue;
             else:
                 newfilename.write(lines[i]);
