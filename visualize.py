@@ -13,10 +13,13 @@ for i in range(3):
 workingfolder = "/workspace/jiahaoz/FIXP/QECAL/";
 natom = 5;
 startconfig = ABIIO(natom, "{0:s}btoE.in".format(workingfolder), "{0:s}bto.in".format(workingfolder));
-ITERMAXTIMES = 8;
+ITERMAXTIMES = 4;
 forcenorm = [];
 efieldnorm = [];
 Polarization = [];
+Energy = [];
+startconfig.obtaindipolescf("{0:s}btoE.out".format(workingfolder));
+Polarization.append(startconfig.polarization);
 for i in range(ITERMAXTIMES):
     startconfig.obtainforce("{0:s}ITER.out{1:d}".format(workingfolder, i));
     forcenorm.append(np.linalg.norm(startconfig.force));
@@ -32,8 +35,9 @@ ax[1].set_xlabel('Iteration(#)')
 ax[1].set_ylabel('Efield Norm')
 Polarization = np.array(Polarization);
 for i in range(3):
-    ax[2].plot(np.arange(ITERMAXTIMES), Polarization[:, i] - np.ones(len(Polarization)) * Polarization[0, i], label= 'Dir = {0:d}'.format(i));
+    ax[2].plot(np.arange(ITERMAXTIMES + 1), Polarization[:, i] - np.ones(len(Polarization)) * Polarization[0, i], label= 'Dir = {0:d}'.format(i));
 ax[2].set_xlabel('Iteration(#)')
 ax[2].set_ylabel(r'Polarization (C/m$^2$)')
 ax[2].legend();
+fig.tight_layout(w_pad = 0.000001);
 plt.show()
