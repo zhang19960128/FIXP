@@ -8,7 +8,7 @@ class ABIIO:
         self.axis = np.zeros((3, 3));
         self.atomp = np.zeros((natom, 3));
         self.force = np.zeros((natom, 3));
-        self.efield = np.zeros(3);
+        self.efield = np.zeros(3); # units Mv/cm
         self.polarization = np.zeros(3);
         self.readscf();
 
@@ -57,7 +57,7 @@ class ABIIO:
                 if lines[i].find("efield_cart(" + str(j + 1) + ")") != -1:
                     ebefore[j] = float(lines[i].replace(',','').split("=")[-1]);
         f.close();
-        self.efield = ebefore;
+        self.efield = ebefore * 36.3609 * 10**10 / (10**6 / (10**-2));
 
     def obtaindipolescf(self, filename):
         berryout = open(filename, 'r');
@@ -65,7 +65,7 @@ class ABIIO:
         epolar = np.zeros(3);
         apolar = np.zeros(3);
         total = np.zeros(3);
-        Atoau = 0.52917721067121;
+        autoA = 0.52917721067121;
         for i in range(len(lines)):
             if(lines[i].find("Electronic Dipole on Cartesian axes") != -1):
                 for j in range(3):
@@ -78,8 +78,39 @@ class ABIIO:
         # now the units of dipole is e * bohr
         echarge = 1.60217663 * 10**(-19);
         bohrR = 5.291772 * 10**(-11);
-        polarization = total / np.linalg.det(self.axis/Atoau) * echarge * bohrR / (bohrR)**3;
+        polarization = total / np.linalg.det(self.axis/autoA) * echarge * bohrR / (bohrR)**3;
         self.polarization = polarization;
+
+    def offsetbyperiod(self, ref, guide):
+        de = self.efield - ref.efield;
+        dp = self.atomp - ref.atomp;
+        print('change of position is:= ', dp)
+        IONdipolechange = np.zeros((3, 1));
+        for i in range(self.natom):
+            IONdipolechange = IONdipolechange + np.matmul(guide.atomcharge[i], dp[i].reshape((3, 1)));
+        IONdipolechange = IONdipolechange.reshape(3);
+        columbtoelectron = 1 / (1.60217663 * (10 ** -19));
+        electrontocolumb = 1.60217663 * (10 ** -19);
+        epsilon0 = 8.85418 * (10 ** -12);
+        metertoang = 10**10;
+        Edipolechange = epsilon0 * columbtoelectron * np.linalg.det(self.axis) / metertoang * de * 0.01; # 0.01 refer to  Mv/cm -> V/angstrom
+        Edipolechange = np.matmul(guide.edie, Edipolechange.reshape((3, 1)));
+        Edipolechange = Edipolechange.reshape(3);
+        totalest = Edipolechange + IONdipolechange;
+        print('Edipole, IONdipole:=',Edipolechange, IONdipolechange,'--')
+        Guiding = totalest / np.linalg.det(self.axis) * electrontocolumb * ( metertoang**2 ); # units now is C/m^2;
+        rawchange = self.polarization - ref.polarization; # units now is C/m^2;
+        period = self.axis / np.linalg.det(self.axis) * electrontocolumb * metertoang**2;
+        period = np.array([period[0][0], period[1][1], period[2][2]]);
+        print('@@@','RawChange:=',rawchange,'Guiding:=', Guiding,'Period:=', period, '@@@')
+        fractionchange = ( rawchange - Guiding ) / period;
+        finalchange = rawchange - Guiding - np.round( fractionchange.astype(np.double) ) * period + Guiding;
+        print('--------------')
+        print("Finalchange:=", finalchange, "Guiding Estimate to overcome Polarization Quanta is:= ", Guiding);
+        print("Quanta is:=", period);
+        print("Please note this time polarization is not the raw output");
+        print('--------------')
+        self.polarization = finalchange + ref.polarization;
 
     def writescfE(self, Efield, atomposition, outputfilename):
         changeunits = Efield * 10**6 / 10**(-2) / (36.3509*10**10); # the Efield units now is MV/cm the atomposition units is the angstrom;
@@ -162,6 +193,8 @@ class PHIO:
         lines = phout.readlines();
         for i in range(len(lines)):
             if lines[i].find("site n.  atom      mass           positions (alat units)") != -1:
+
+
                 for j in range(self.natom):
                     for k in range(3):
                         self.atommass[j] = float(lines[i+j+1].split()[2]);
