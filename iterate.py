@@ -22,7 +22,8 @@ class iteration:
         DP = Polarnow - self.goal;
         period = self.axis / np.linalg.det(self.axis) * ( 10**(-10) ) * 1.60217663 * ( 10**(-19) ) / ( 10**(-30) ) # Units C / m^2.
         period = np.array([period[0][0], period[1][1], period[2][2]]);
-        DP = DP - np.round(DP / period) * period;
+        fractionchange = DP / period;
+        DP = DP - np.round( fractionchange.astype( np.double ) ) * period;
         DP = DP * columbtoelectron / ( 10**10 )**2; # Units of DP is now e / A^2, we use the Efield as V/A
         Amatrix = np.zeros((3 * self.natom + 3, 3 * self.natom + 3), dtype = float);
         x = np.zeros(3 * self.natom + 3);
@@ -54,3 +55,4 @@ class iteration:
         for i in range(self.natom - 1, -1, -1):
             newP[i] = newP[i] - newP[0];
         self.Pchain.append(newP);
+        self.yremain = y;

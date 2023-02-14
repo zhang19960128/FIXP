@@ -40,3 +40,5 @@ if __name__=='__main__':
         print(startconfig.polarization, nextconfig.polarization);
         startconfig = nextconfig;
         startPH = nextPH;
+        if np.linalg.norm( iter.yremain ) < 1e-5:
+            sys.exit("Converged!!!")
