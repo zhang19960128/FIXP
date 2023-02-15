@@ -15,7 +15,7 @@ if __name__=='__main__':
     startPH = PHIO(natom);
     startPH.obtainph("{0:s}ph.out".format(workingfolder));
     startPH.obtaindyn("{0:s}{1:s}".format(workingfolder, dynmatfilename));
-    DeltaP = np.array([0.0, 0.0, 0.05]);
+    DeltaP = np.array([0.0, 0.0, -0.1]);
     Ptarget = DeltaP + startconfig.polarization;
     iter = iteration(natom, Ptarget, 0.00001, 0.00001);
     ITERMAXTIMES = 10;
