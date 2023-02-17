@@ -193,8 +193,6 @@ class PHIO:
         lines = phout.readlines();
         for i in range(len(lines)):
             if lines[i].find("site n.  atom      mass           positions (alat units)") != -1:
-
-
                 for j in range(self.natom):
                     for k in range(3):
                         self.atommass[j] = float(lines[i+j+1].split()[2]);
@@ -242,7 +240,7 @@ class PHIO:
         f = open(filename, 'r');
         line = f.readlines();
         for i in range(len(line)):
-            if lines[i].find("Effective charges (d Force / dE) in cartesian axis with asr applied") != -1:
+            if line[i].find("Effective charges (d Force / dE) in cartesian axis with asr applied") != -1:
                 for j in range(self.natom):
                     for k in range(4):
                         if k != 0:

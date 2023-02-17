@@ -14,7 +14,7 @@ for i in range(3):
 workingfolder = "/workspace/jiahaoz/FIXP/QECAL/";
 natom = 5;
 startconfig = ABIIO(natom, "{0:s}btoE.in".format(workingfolder), "{0:s}bto.in".format(workingfolder));
-ITERMAXTIMES = 7;
+ITERMAXTIMES = 10;
 forcenorm = [];
 efieldnorm = [];
 Polarization = [];
